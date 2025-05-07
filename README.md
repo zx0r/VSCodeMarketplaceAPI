@@ -29,7 +29,7 @@ print_success() { echo -e "\e[32m[✓]\e[0m $1"; }
 print_warn() { echo -e "\e[34m[⚠]\e[0m $1"; }
 print_info() { echo -e "\e[34m[➤]\e[0m $1"; }
 print_error() {
-  printf "\e[31m[ⓘ] %s\e[0m\n" "$1" >&2
+  printf "\e[31m[Error] %s\e[0m\n" "$1" >&2
   exit 1
 }
 
