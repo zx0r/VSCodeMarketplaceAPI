@@ -104,6 +104,7 @@ download_and_install_vsix() {
   print_success "Downloaded $vsix_file from $output_path"
   print_success "Installed $vsix_file from $output_path"
 }
+
 vscode-marketplace-api "$@"
 ```
 
