@@ -158,7 +158,7 @@ vscode-marketplace-api "$@"
 # https://marketplace.visualstudio.com/_apis/public/gallery/publishers/{publisher}/vsextensions/{extension}/{version}/vspackage
 #
 # Fallback URL (if primary fails)
-https://{publisher}.gallery.vsassets.io/_apis/public/gallery/publisher/{publisher}/extension/{extension}/{version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
+# https://{publisher}.gallery.vsassets.io/_apis/public/gallery/publisher/{publisher}/extension/{extension}/{version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage
 #
 # - Purpose:
 #   This URL downloads the raw VSIX file (ZIP archive format) of a specific
