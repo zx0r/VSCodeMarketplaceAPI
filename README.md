@@ -107,7 +107,7 @@ vscode-marketplace-api "$@"
 | VSIX CDN Endpoints      | Dual CDN paths for package downloads (Primary/Fallback)                     |
 | Metadata Payload        | JSON structure containing 50+ data points about extensions                  |
 
-### Filter System Matrix
+###### Filter System Matrix
 | Type ID | Filter Type         | Example Value                          | Use Case                              |
 |---------|---------------------|----------------------------------------|---------------------------------------|
 | 1       | Tag                 | `python`                               | Discover similar extensions           |
@@ -115,8 +115,6 @@ vscode-marketplace-api "$@"
 | 7       | Extension Name      | `python`                               | Publisher-specific extension search   |
 | 8       | Target Platform     | `Microsoft.VisualStudio.Code`          | Platform compatibility checks         |
 | 10      | Full-Text Search    | `code formatting`                      | General marketplace search            |
-
-
 
 
 ```bash
