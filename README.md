@@ -11,9 +11,9 @@
 - **Type**: REST API
 - **Data Format**: JSON
 - **Auth**: Personal Access Token (PAT)
-- Supports HTTP methods: `GET` `POST` `PUT` `DELETE`
+- **Supports HTTP methods**: `GET` `POST` `PUT` `DELETE`
 - The API allows developers to retrieve metadata, download assets, and interact with the marketplace
-- VSCode Marketplace API is a REST API that provides access to a vast repository of extensions, themes, and other assets for the VSCode ecosystem.
+- VSCode Marketplace API provides access to a vast repository of extensions, themes, and other assets for the VSCode ecosystem
 
 ```bash
 #!/usr/bin/env bash
