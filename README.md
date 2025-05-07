@@ -2,18 +2,20 @@
 <img src="https://i.imgur.com/dBaSKWF.gif" height="40" width="100%">
 
 <!-- Header Animation -->
+
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&duration=2800&pause=2000&color=00FF00&center=true&vCenter=true&width=1080&lines=💮+%7C+VSCode+Marketplace+API+Explorer+%7C+💮)](https://git.io/typing-svg)
 
 <!-- Neon Line Separator  -->
 <img src="https://i.imgur.com/dBaSKWF.gif" height="40" width="100%">
 
-##### ⚙️ Overview
+##### ⚙️ API Overview
+
 - **Type**: REST API
 - **Data Format**: JSON
 - **Auth**: Personal Access Token (PAT)
-- **Supports HTTP methods**: `GET` `POST` `PUT` `DELETE`
+- Supports HTTP methods: `GET` `POST` `PUT` `DELETE`
 - The API allows developers to retrieve metadata, download assets, and interact with the marketplace
-- VSCode Marketplace API provides access to a vast repository of extensions, themes, and other assets for the VSCode ecosystem
+- VSCode Marketplace API is a REST API that provides access to a vast repository of extensions, themes, and other assets for the VSCode ecosystem.
 
 ```bash
 #!/usr/bin/env bash
@@ -25,9 +27,9 @@
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # Notification functions
-print_success() { echo -e "\e[32m[✓]\e[0m $1"; }
-print_warn() { echo -e "\e[34m[⚠]\e[0m $1"; }
-print_info() { echo -e "\e[34m[➤]\e[0m $1"; }
+print_success() { echo -e "\e[32m[Success]\e[0m $1"; }
+print_warn() { echo -e "\e[34m[Warn]\e[0m $1"; }
+print_info() { echo -e "\e[34m[Info]\e[0m $1"; }
 print_error() {
   printf "\e[31m[Error] %s\e[0m\n" "$1" >&2
   exit 1
@@ -36,10 +38,9 @@ print_error() {
 vscode-marketplace-api() {
   local extension_id="$1"
   [[ -z "$extension_id" ]] && read -r -p "Please enter an extensionID: " extension_id
-  validate_dependencies
   print_info "🔍 Fetching metadata for $extension_id"
   local publisher extension_name version vsix_package_url
-  read -r publisher extension_name version vsix_package_url < <(parse_metadata "$extension_id")
+  read -r publisher extension_name version vsix_package_url < <(extract_metadata "$extension_id")
   print_info "Publisher: $publisher"
   print_info "Extension Name: $extension_name"
   print_info "Version: $version"
@@ -47,16 +48,7 @@ vscode-marketplace-api() {
   download_and_install_vsix "$publisher" "$extension_name" "$version" "$vsix_package_url"
 }
 
-validate_dependencies() {
-  local deps=("jq" "curl" "codium")
-  for dep in "${deps[@]}"; do
-    if ! command -v "$dep" &>/dev/null; then
-      print_error "Missing required dependency: $dep"
-    fi
-  done
-}
-
-fetch_extension_metadata() {
+get_extension_metadata() {
   local extension_id="$1"
   local api_url="https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery"
   local page="1"
@@ -69,14 +61,14 @@ fetch_extension_metadata() {
   local payload response
   payload="{\"filters\":[{\"criteria\":[{\"filterType\":$filter_type,\"value\":\"$filter_value\"}],\"pageNumber\":$page,\"pageSize\":$page_size,\"sortBy\":0,\"sortOrder\":0}],\"flags\":$flags,\"assetTypes\":[]}"
   response=$(curl -s -X POST "$api_url" "${headers[@]}" -d "$payload")
-  [[ -z "$response" ]] && print_error "API request failed for: $extension_id"
+  [[ -z "$response" ]] && print_error "Empty response from VSCode MarketplaceAPI: $extension_id"
   echo "$response"
 }
 
-parse_metadata() {
+extract_metadata() {
   local extension_id="$1"
   local response extension_data publisher extension_name version vsix_package_url
-  response=$(fetch_extension_metadata "$extension_id")
+  response=$(get_extension_metadata "$extension_id")
   extension_data=$(echo "$response" | jq '.results[0].extensions[0] // empty')
   [[ -z "$extension_data" ]] && print_error "Not found Extension ID: $extension_id"
   publisher=$(echo "$extension_data" | jq -r '.publisher.publisherName')
@@ -93,36 +85,40 @@ download_and_install_vsix() {
   local version="$3"
   local vsix_package_url="$4"
   local vsix_file="${publisher}.${extension_name}-${version}.vsix"
-  local output_dir="./artifacts"
+  local output_dir="./Downloads"
   local output_path="${output_dir}/${vsix_file}"
   print_info "Downloading $vsix_file to $output_path"
   mkdir -p "$output_dir"
-  curl -fsSL# "$vsix_package_url" -o "$output_path" || print_error "Failed to download VSIX file: $vsix_file"
+  curl -fsSL "$vsix_package_url" -o "$output_path" || print_error "Failed to download VSIX file: $vsix_file"
   codium --install-extension "$output_path" --force || print_error "Failed to install $vsix_file from $output_path"
   print_success "Downloaded $vsix_file from $output_path"
   print_success "Installed $vsix_file from $output_path"
 }
+
+# Run
 vscode-marketplace-api "$@"
+
 ```
 
 ##### 🛠 API Reference Architecture
 
 ###### Core Components
-| Component               | Description                                                                 |
-|-------------------------|-----------------------------------------------------------------------------|
-| ExtensionQuery API      | POST endpoint for metadata retrieval (`/_apis/public/gallery/extensionquery`)|
-| VSIX CDN Endpoints      | Dual CDN paths for package downloads (Primary/Fallback)                     |
-| Metadata Payload        | JSON structure containing 50+ data points about extensions                  |
 
-###### Filter System Matrix
-| Type ID | Filter Type         | Example Value                          | Use Case                              |
-|---------|---------------------|----------------------------------------|---------------------------------------|
-| 1       | Tag                 | `python`                               | Discover similar extensions           |
-| 4       | Extension ID        | `ms-python.python`                     | Exact extension lookup                |
-| 7       | Extension Name      | `python`                               | Publisher-specific extension search   |
-| 8       | Target Platform     | `Microsoft.VisualStudio.Code`          | Platform compatibility checks         |
-| 10      | Full-Text Search    | `code formatting`                      | General marketplace search            |
+| Component          | Description                                                                   |
+| ------------------ | ----------------------------------------------------------------------------- |
+| ExtensionQuery API | POST endpoint for metadata retrieval (`/_apis/public/gallery/extensionquery`) |
+| VSIX CDN Endpoints | Dual CDN paths for package downloads (Primary/Fallback)                       |
+| Metadata Payload   | JSON structure containing 50+ data points about extensions                    |
 
+### Filter System Matrix
+
+| Type ID | Filter Type      | Example Value                 | Use Case                            |
+| ------- | ---------------- | ----------------------------- | ----------------------------------- |
+| 1       | Tag              | `python`                      | Discover similar extensions         |
+| 4       | Extension ID     | `ms-python.python`            | Exact extension lookup              |
+| 7       | Extension Name   | `python`                      | Publisher-specific extension search |
+| 8       | Target Platform  | `Microsoft.VisualStudio.Code` | Platform compatibility checks       |
+| 10      | Full-Text Search | `code formatting`             | General marketplace search          |
 
 ```bash
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ EXTENSION QUERY API ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -130,7 +126,7 @@ vscode-marketplace-api "$@"
 # Visual Studio Marketplace API for extension search and metadata queries.
 #
 # $api="https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery"
-# 
+#
 # user_agent="Mozilla/5.0 (Macintosh; Intel  Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1"
 # headers: "Content-Type: application/json" "Accept: application/json; charsetutf-8; api-version7.2-preview.1" "User-Agent: $user-agent"
 #
@@ -323,7 +319,8 @@ vscode-marketplace-api "$@"
 ```
 
 ###### Source For Developers
--  REST & SOAP API Testing Tool
+
+- REST & SOAP API Testing Tool
   [ReqBin is an online API testing tool for REST and SOAP APIs](https://reqbin.com)
 
 - Official Microsoft API Docs:
@@ -333,11 +330,11 @@ vscode-marketplace-api "$@"
 - VSCode Implementation Details:
   [GitHub Source Code](https://github.com/microsoft/vscode/blob/b43174e1b275850f5b80d170e47c1c04eb780790/src/vs/platform/extensionManagement/node/extensionGalleryService.ts#L75-L88)
 
-
 <!-- Neon Line Separator -->
 <img src="https://i.imgur.com/dBaSKWF.gif" height="40" width="100%">
 
 <!-- Header Animation -->
+
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=30&duration=2800&pause=2000&color=00FF00&center=true&vCenter=true&width=1080&lines=💮+%7C+VSCode+Marketplace+API+Explorer+%7C+💮)](https://git.io/typing-svg)
 
 <!-- Neon Line Separator  -->
